@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import random
@@ -55,14 +55,13 @@ class WebLogGeneration(object):
 		time_str = time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
 		while count >1:
 			query_log = "{ip} - - [{local_time}] \"GET /{url} HTTP/1.1\" 200 0 \"{refer}\" \"{user_agent}\" \"-\"".format(ip=self.sample_ip(),local_time=time_str,url=self.sample_url(),refer=self.sample_refer(),user_agent=self.sample_user_agent())
-			print query_log
+			print(query_log)
 			count = count -1
 
 if __name__ == "__main__":
 	web_log_gene = WebLogGeneration()
 
-	#while True:
-	#	time.sleep(random.uniform(0, 3))
-	web_log_gene.sample_one_log(random.uniform(10, 100))
-
-
+	# while True:
+	#     time.sleep(random.uniform(0, 3))
+	# Generate a random integer count compatible with Python 3
+	web_log_gene.sample_one_log(random.randint(10, 100))

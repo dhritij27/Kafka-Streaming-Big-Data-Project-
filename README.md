@@ -11,13 +11,13 @@ You can find some examples of logs generated in Python [here](https://github.com
 sample_web_log.py use to generate logs
 You can use the following commands to produce kafka's message
 ```bash
-python sample_web_log.py|kafka-console-producer.sh --broker-list your_broker_list --topic  your_topic  
+python3 sample_web_log.py | kafka-console-producer.sh --broker-list your_broker_list --topic your_topic
 ```
 
 You can also use the crontab to generate kafka messages at regular intervals.
 ```bash
 crontab -e
-0/5 * * * * ? python sample_web_log.py|kafka-console-producer.sh --broker-list your_broker_list --topic  your_topic 
+0/5 * * * * python3 /full/path/to/sample_web_log.py | /full/path/to/kafka-console-producer.sh --broker-list your_broker_list --topic your_topic
 ```
 
  
@@ -25,5 +25,11 @@ crontab -e
 There are two files application.properties and mysql.sql under the resources folder.
 application.properties is the connection information of the database, mysql.sql is used to create the database and data table sql statement. 
 
+
+## Ubuntu/Kali setup notes
+- Ensure Java 8 (JDK 1.8) is installed and active for Spark 2.4.x.
+- Install Maven, MySQL, and download Spark 2.4.x (Scala 2.11) and Kafka binaries.
+- Use Python 3 to run `sample_web_log.py` on modern Ubuntu/Kali.
+- Run Spark job with: `spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.4.0,org.apache.spark:spark-streaming-kafka-0-10_2.11:2.4.0 mysql:mysql-connector-java:8.0.15 --class io.zhanghao.sql.streaming.StructuredKafkaLogApp target/log-analysis-spark-1.0-SNAPSHOT.jar <bootstrap-servers> <topic>`
  
  

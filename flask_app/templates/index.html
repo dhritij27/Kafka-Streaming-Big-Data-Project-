@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Analysis Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .stat-card {
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl md:text-3xl font-bold">Log Analysis Dashboard</h1>
+                    <div class="text-sm text-blue-100" id="last-updated">Last updated: Loading...</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card p-6">
+                    <div class="text-gray-500 text-sm font-medium">Total Page Views</div>
+                    <div class="text-3xl font-bold text-blue-600 mt-2" id="total-pv">0</div>
+                    <div class="text-green-500 text-sm mt-1">Real-time</div>
+                </div>
+                <div class="stat-card p-6">
+                    <div class="text-gray-500 text-sm font-medium">Unique IPs</div>
+                    <div class="text-3xl font-bold text-green-600 mt-2" id="unique-ips">0</div>
+                    <div class="text-green-500 text-sm mt-1">Tracked</div>
+                </div>
+                <div class="stat-card p-6">
+                    <div class="text-gray-500 text-sm font-medium">Search Keywords</div>
+                    <div class="text-3xl font-bold text-purple-600 mt-2" id="keywords-count">0</div>
+                    <div class="text-green-500 text-sm mt-1">Tracked</div>
+                </div>
+                <div class="stat-card p-6">
+                    <div class="text-gray-500 text-sm font-medium">User Agents</div>
+                    <div class="text-3xl font-bold text-red-600 mt-2" id="user-agents">0</div>
+                    <div class="text-green-500 text-sm mt-1">Tracked</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-lg shadow-md card">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Search Engine Distribution</h2>
+                    <div id="search-engine-chart" class="h-80"></div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md card">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Top IP Addresses</h2>
+                    <div id="ip-chart" class="h-80"></div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md card">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">Top Search Keywords</h2>
+                    <div id="keyword-chart" class="h-80"></div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md card">
+                    <h2 class="text-xl font-semibold mb-4 text-gray-800">User Agent Distribution</h2>
+                    <div id="agent-chart" class="h-80"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-6 mt-12">
+            <div class="container mx-auto px-4 text-center">
+                <p>Log Analysis Dashboard &copy; 2023 | Powered by Flask & Plotly</p>
+                <p class="text-sm text-gray-400 mt-2">Data updates every 5 seconds</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Function to update dashboard data
+        async function updateDashboard() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update stats
+                    document.getElementById('total-pv').textContent = parseInt(data.total_pv).toLocaleString();
+                    
+                    // Update charts if they exist in the response
+                    if (data.charts) {
+                        if (data.charts.search_engine_chart) {
+                            Plotly.react('search-engine-chart', data.charts.search_engine_chart.data, data.charts.search_engine_chart.layout);
+                        }
+                        if (data.charts.ip_chart) {
+                            Plotly.react('ip-chart', data.charts.ip_chart.data, data.charts.ip_chart.layout);
+                            document.getElementById('unique-ips').textContent = data.charts.ip_chart.data[0].x.length;
+                        }
+                        if (data.charts.keyword_chart) {
+                            Plotly.react('keyword-chart', data.charts.keyword_chart.data, data.charts.keyword_chart.layout);
+                            document.getElementById('keywords-count').textContent = data.charts.keyword_chart.data[0].x.length;
+                        }
+                        if (data.charts.agent_chart) {
+                            Plotly.react('agent-chart', data.charts.agent_chart.data, data.charts.agent_chart.layout);
+                            document.getElementById('user-agents').textContent = data.charts.agent_chart.data[0].x.length;
+                        }
+                    }
+
+                    // Update last updated time
+                    const lastUpdated = new Date(data.last_updated || new Date()).toLocaleString();
+                    document.getElementById('last-updated').textContent = `Last updated: ${lastUpdated}`;
+                }
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+            }
+        }
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard();
+            // Update every 5 seconds
+            setInterval(updateDashboard, 5000);
+        });
+    </script>
+</body>
+</html>
